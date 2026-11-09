@@ -1,14 +1,5 @@
 'use strict'
 
-var tableView = null;
-var userList = [];
-var entryList = [];
-var rows = [];
-
-var barchartThroughput = null;
-var barchartRequests = null;
-var barchartExecuteTime = null;
-
 function convert(date) {
     const dateObj = new Date(date);
 
@@ -113,6 +104,7 @@ function activate(pages) {
     }
 
 }
+
 function addRow(table, value, callback) {
     var row = table.insertRow();
 
@@ -125,6 +117,22 @@ function addRow(table, value, callback) {
 
     cell.innerHTML = value;
 
+}
+
+function select(request) {
+
+    console.log(window.rows[request]);
+    
+    document.getElementById("json:summary").replaceChildren();
+    document.getElementById("json:history").replaceChildren();
+
+    console.log(Object.keys(window.rows[request]))
+
+    for (var col of Object.keys(window.rows[request])) {
+        document.getElementById(col).appendChild(renderjson(window.rows[request][col]));
+    }
+
+    document.getElementById("request-tabs").style.visibility = "visible";
 }
 
 /**
@@ -145,13 +153,15 @@ window.onload = async function () {
                 document.getElementById("datalake-userid").value,
                 document.getElementById("datalake-password").value,
                 document.getElementById("datalake-table").value);
-                document.getElementById("connect-dialog").close();
-                
-            document.getElementById("wait-dialog").close();
-            
-            document.getElementById("status").innerHTML = `${document.getElementById("datalake-url").value}:` +
-                                                          `${document.getElementById("datalake-table").value} - connected`;
+            document.getElementById("connect-dialog").close();
 
+            document.getElementById("wait-dialog").close();
+
+            document.getElementById("status").innerHTML = `${document.getElementById("datalake-url").value}:` +
+                `${document.getElementById("datalake-table").value} - connected`;
+
+
+            document.getElementById("cancel-connect-dialog").disabled = false;
             document.getElementById("connect-dialog").close();
 
         } catch (exception) {
@@ -175,6 +185,12 @@ window.onload = async function () {
 
     });
 
+    document.getElementById("connect-button").addEventListener('click', async (e) => {
+
+        document.getElementById("connect-dialog").showModal()
+
+    });
+
     document.getElementById("info-button").addEventListener('click', async (e) => {
 
         try {
@@ -188,7 +204,6 @@ window.onload = async function () {
                 document.getElementById("datalake-userid").value,
                 document.getElementById("datalake-password").value,
                 document.getElementById("datalake-table").value);
-
             for (var column of response["response"]) {
 
                 if (column["col"] == "json:control") {
@@ -243,7 +258,38 @@ window.onload = async function () {
                 document.getElementById("search-limit").value
             );
 
-            console.log(response);
+            document.getElementById("wait-dialog").close();
+
+            window.response = response["response"];
+
+            var rows = {}
+
+            var table = document.getElementById("search-table");
+
+            while (table.rows.length > 0) {
+                table.deleteRow(0);
+            }
+
+            for (var row of response["response"]) {
+
+                if (row['key'] != "$") {
+                    addRow(table, row['key'], 'select');
+
+                    var cells = {}
+
+                    for (var cell of row["cells"]) {
+  
+                        cells[cell["col"]] = JSON.parse(cell["val"]);
+
+                    }
+
+                    rows[row['key']] = cells
+
+                }
+
+            }
+
+            window.rows = rows;
 
         } catch (exception) {
 
@@ -267,20 +313,31 @@ window.onload = async function () {
     });
 
     document.getElementById("connect-dialog").addEventListener('input', function (event) {
-        const container = document.getElementById('connect-dialog');
-        const fields = container.querySelectorAll('input, select, textarea');
 
-        var enabled = Array.from(fields).every(field => field.checkValidity());
+        try {
+            const container = document.getElementById('connect-dialog');
+            const fields = container.querySelectorAll('input, select, textarea');
 
-        for (var button of container.getElementsByClassName('server-command')) {
-            button.disabled = !enabled;
+            var enabled = Array.from(fields).every(field => field.checkValidity());
+
+            for (var button of document.getElementsByClassName('navigator-action')) {
+                button.disabled = !enabled;
+            }
+
+        } catch (exception) {
+            showError(exception.message);
         }
 
     });
+
     renderjson.setShowToLevel(3);
+
+    window.rows = {};
+    window.select = select;
 
     activateTabs('info-tabs', 'summary-panel', 'info-tab1');
     activateTabs('connection-tabs', 'datalake-panel', 'connection-tab1');
+    activateTabs('request-tabs', 'request-summary-panel', 'request-tab1');
 
     document.getElementById("connect-dialog").showModal();
 
