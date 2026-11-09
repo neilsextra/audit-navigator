@@ -1,5 +1,6 @@
 import base64
 import requests
+import urllib3
 
 class Storage:
 
@@ -20,7 +21,8 @@ class Storage:
          self.logger = logger
 
     def table_exists(self, base_url:str, name_space:str, userid:str, password:str, table_name:str):
-    
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
         headers = {"Content-Type": "application/json", "Accept": "application/json"}
 
         # Define the table metadata structure
@@ -36,10 +38,13 @@ class Storage:
         return int(response.status_code) in [200, 201]
 
     def get_row(self, base_url:str, userid:str, password:str, name_space:str, table_name:str, row_key: str):
-
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
         values = []
 
         url = f"{base_url}/{name_space}:{table_name}/{row_key}"
+
+        print(f"(get_row) {url}")
         headers = {"Accept": "application/json"}
 
         response = requests.get(url, auth=(userid, password), headers=headers, verify=False)
@@ -64,32 +69,37 @@ class Storage:
         return values, 200
 
     def get_clob(self, base_url:str, userid:str, password:str, name_space:str, table_name:str, 
-                        filter: str, limit: str = "10", offset: str = "0", length: str = "1"):
+                        filter: str ="*", limit: str = "10", offset: str = "0", length: str = "2"):
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        values = []
+        rows = []
 
         url = f"{base_url}/{name_space}:{table_name}/{filter}?limit={limit}&filter=ColumnPaginationFilter({length},{offset})"
+
+        print(f"(get_clob) {url}")
         headers = {"Accept": "application/json"}
 
         response = requests.get(url, auth=(userid, password), headers=headers, verify=False)
-        
+
         if response.status_code == 200:
             data = response.json()
             for row in data.get("Row", []):
+                key = Storage.b64_decode(row.get("key"))
+                
+                cells = []
                 for cell in row.get("Cell", []):
-                    # Decode column name and cell value
-                    col = Storage.b64_decode(cell.get("column"))
-                    val = Storage.b64_decode(cell.get("$"))
-
-                    values.append({
-                        "row": "",
-                        "col": col,
-                        "val": val
-                    })
+     
+                    cells.append(
+                        {"col": Storage.b64_decode(cell.get("column")),
+                         "val": Storage.b64_decode(cell.get("$"))
+                        })
+    
+                rows.append({
+                    "key": key,
+                    "cells": cells
+                })
 
         else:
             return [], response.status_code
                                 
-        return values, 200
-                                
-      
+        return rows, 200
