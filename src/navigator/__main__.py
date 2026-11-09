@@ -53,19 +53,18 @@ def get_status():
     })
 
 @app.route("/search", methods=["GET"])
-def getsearch():
+def get_search():
 
-    return command.action(
+    return command.search(
     {
         "datalake_url": request.headers.get('datalake-url'),
         "datalake_namespace": request.headers.get('datalake-namespace'),
         "datalake_userid": request.headers.get('datalake-userid'),
         "datalake_password": request.headers.get('datalake-password'),
-        "datalake-table": request.headers.get('datalake-table'),
-        "row_filter": request.values.get('filter', '*'),
+        "datalake_table": request.headers.get('datalake-table'),
+        "row_filter": request.values.get('filter', '*').strip(),
         "row_limit": request.values.get('limit', '10')
     })
-        
     
 @app.route("/")
 def start():
