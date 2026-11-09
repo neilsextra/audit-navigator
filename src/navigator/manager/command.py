@@ -1,5 +1,3 @@
-import json
-import time
 from urllib.parse import urlparse
 
 class Command:
@@ -26,15 +24,15 @@ class Command:
         return config, status_code  
          
     def search(self, parameters):
+
+        filter = "*" if parameters['row_filter'] == "" else parameters['row_filter']
+
         rows, status_code = self.storage.get_clob(parameters["datalake_url"],  
                                               parameters["datalake_userid"], 
                                               parameters["datalake_password"], 
                                               parameters["datalake_namespace"], 
                                               parameters["datalake_table"],
-                                              parameters["row_filter"],
-                                              parameters["row_limit"],
+                                              filter,
+                                              parameters["row_limit"]
                                               )   
-
-    def retrieve(self, parameters):
-
-        return 200            
+        return rows, status_code
