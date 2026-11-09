@@ -126,8 +126,6 @@ function select(request) {
     document.getElementById("json:summary").replaceChildren();
     document.getElementById("json:history").replaceChildren();
 
-    console.log(Object.keys(window.rows[request]))
-
     for (var col of Object.keys(window.rows[request])) {
         document.getElementById(col).appendChild(renderjson(window.rows[request][col]));
     }
@@ -277,10 +275,8 @@ window.onload = async function () {
 
                     var cells = {}
 
-                    for (var cell of row["cells"]) {
-  
-                        cells[cell["col"]] = JSON.parse(cell["val"]);
-
+                    for (var cell of row["cells"]) { 
+                        cells[cell["col"]] = cell["val"].trim().length == 0 ? {} : JSON.parse(cell["val"]);
                     }
 
                     rows[row['key']] = cells
