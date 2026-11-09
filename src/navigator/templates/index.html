@@ -61,7 +61,7 @@
                 <button class="tablinks" id="connection-tab1"
                     onclick="showTab(event, 'connection-tabs', 'datalake-panel', 'connection-tab1')"
                     value="datalake">Datalake</button>
-             </div>
+            </div>
 
             <div id="datalake-panel" class="tabcontent"
                 style="position:absolute; top:45px; overflow:none; padding-left:20px; left:20px; right:-2px; border: 1px solid rgba(0, 0, 0, 0.2); display:inline-block;">
@@ -83,15 +83,15 @@
                 </input>
                 <p style="position:relative; font-size: 14px; font-weight: bold;">Password
                 </p>
-                <input class="modal-entry" id="datalake-password"
-                    style="position:relative; width:480px;" type="password" name="datalake-password"
-                    placeholder="password" required></input>
+                <input class="modal-entry" id="datalake-password" style="position:relative; width:480px;"
+                    type="password" name="datalake-password" placeholder="password" required></input>
                 <p style=" position:relative;  font-size: 14px; font-weight: bold;">Base Table
                 </p>
-                <input class="modal-entry" id="datalake-table" style="position:relative; width:480px; margin-bottom:60px;" type="text"
-                    name="base-table" placeholder="base table" required>
+                <input class="modal-entry" id="datalake-table"
+                    style="position:relative; width:480px; margin-bottom:60px;" type="text" name="base-table"
+                    placeholder="base table" required>
                 </input>
- 
+
             </div>
 
         </div>
@@ -216,6 +216,32 @@
 
     <div id="display-panel"
         style="display:inline-block; position: absolute; top: 44px; bottom: 30px; left: 360px; right: 10px; border: 1px solid rgba(0, 0, 0, 0.2);">
+        <div id="request-tabs"
+            style="position:absolute; top:10px; left:10px; right:10px; bottom:10px; overflow:hidden; visibility:hidden">
+            <div class="tab">
+                <button class="tablinks" id="request-tab1"
+                    onclick="showTab(event, 'request-tabs', 'request-summary-panel', 'request-tab1')"
+                    value="Summary">Summary</button>
+                <button class="tablinks" id="request-tab2"
+                    onclick="showTab(event, 'request-tabs', 'request-history-panel', 'request-tab2')"
+                    value="History">History</button>
+            </div>
+
+            <div id="request-summary-panel" class="tabcontent"
+                style="position:absolute; top:45px; left:0px; right:0px; bottom:0px; overflow: auto;">
+                <div id="json:summary"
+                    style="position:absolute; left:0px; top:2px; right:0px; bottom:0px;">
+                </div>
+            </div>
+
+            <div id="request-history-panel" class="tabcontent"
+                style="position:absolute; top:45px; left:0px; right:0px; bottom:0px;  overflow: auto;">
+                <div id="json:history"
+                    style="position:absolute; left:0px; top:2px; right:0px; bottom:0px;">
+                </div>
+            </div>
+
+        </div>
 
     </div>
 
