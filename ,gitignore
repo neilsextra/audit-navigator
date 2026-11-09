@@ -1,0 +1,5 @@
+dist/*
+libs/*
+pylib/*
+src/navigator/manager/__pycache__/*
+src/navigator/__pycache__/*
