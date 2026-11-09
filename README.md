@@ -1,10 +1,5 @@
 # audit-navigator
 
-## To build  
-
-`poetry update package`
-
-```
 
 ## To Build
 
@@ -24,4 +19,3 @@ or
  or
 
 `python src/navigator pylib 8080`
-
