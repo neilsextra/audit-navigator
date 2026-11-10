@@ -35,7 +35,6 @@
      font-size: 0.85rem;
      color: #666;
      text-align: center;
-     /* Ensures labels match the exact visual tick alignment */
      flex: 1;
  }
 
@@ -50,5 +49,5 @@
  .slider-tick-label {
      font-size: 10px;
      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-     margin-right: 6px;
+     margin-right: 9px;
  }
