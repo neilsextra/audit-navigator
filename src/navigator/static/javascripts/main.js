@@ -229,6 +229,25 @@ function filter(elementId, entries, filter) {
 
 }
 
+function snapshots(requests, request) {
+    var stringUtils = new StringUtils();
+  
+    document.getElementById('request-timeline').replaceChildren();
+    
+    var template = document.getElementById("snapshot-version").text;
+    for (var request of requests) {
+
+        stringUtils.append(template, 'request-timeline',
+            {
+                "time": request["creationTime"],
+                "request": request["key"],
+                "class": "container-selected"
+            });
+
+    }
+
+}
+
 /**
  * Perform an action (generally - retrieve the cotrol record)
  * @param {string} action the action to perform
@@ -341,10 +360,34 @@ async function search(argument, limit) {
 }
 
 /**
- * Show the selected request's summary and history
+ * Select the selected request's summary and history
  * @param {string} request the request identifier
  */
 function select(request) {
+
+    display(request);
+
+    var requests = [];
+
+    console.log(request);
+    console.log(JSON.stringify(window.rows[request]['json:summary']["creationTime"]));
+
+    requests.push(
+        {
+            "key": request,
+            "creationTime": formatTime(JSON.stringify(window.rows[request]['json:summary']["creationTime"]))
+        }
+    );
+
+    snapshots(requests, request);
+
+}
+
+/**
+ * Display the selected request's summary and history
+ * @param {string} request the request identifier
+ */
+function display(request) {
 
     window.request = request;
 
@@ -357,16 +400,13 @@ function select(request) {
 
     addRow("history-table", request, 'retrieve');
 
-    window.requests.push(
-        {
-            "key": request
-        }
-    );
+
+
+    console.log(window.rows[request][col]["creationTime"]);
 
     document.getElementById("request-view").style.visibility = "visible";
 
 }
-
 
 /**
  * retrieve the record before selecing the record
@@ -377,7 +417,7 @@ async function retrieve(request) {
     if (!(request in window.rows)) {
         await search(request, 1);
     }
-    
+
     select(request);
 
 }
@@ -400,16 +440,14 @@ window.onload = async function () {
                 document.getElementById("datalake-userid").value,
                 document.getElementById("datalake-password").value,
                 document.getElementById("datalake-table").value);
-            document.getElementById("connect-dialog").close();
 
+            document.getElementById("connect-dialog").close();
             document.getElementById("wait-dialog").close();
 
             document.getElementById("status").innerHTML = `${document.getElementById("datalake-url").value}:` +
                 `${document.getElementById("datalake-table").value} - connected`;
 
-
             document.getElementById("cancel-connect-dialog").disabled = false;
-            document.getElementById("connect-dialog").close();
 
         } catch (exception) {
 
@@ -504,7 +542,7 @@ window.onload = async function () {
             table.deleteRow(0);
         }
 
-        for (var request of  Object.keys(window.rows)) {
+        for (var request of Object.keys(window.rows)) {
             addRow("search-table", request, 'select');
         }
 
