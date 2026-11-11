@@ -40,6 +40,9 @@
   z-index: 1;
 }
 
+.container-selected:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
 
 /* Container around content */
 .container-unselected {
@@ -62,6 +65,10 @@
   top: 15px;
   border-radius: 50%;
   z-index: 1;
+}
+
+.container-unselected:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* Place the container to the right */
