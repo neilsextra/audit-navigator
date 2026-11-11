@@ -1,0 +1,53 @@
+json .range-container {
+     width: 100%;
+     max-width: 400px;
+     margin: 40px auto;
+     font-family: sans-serif;
+ }
+
+ /* Live value display */
+ .current-value {
+     font-size: 12px;
+     font-weight: bold;
+     margin-bottom: 10px;
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     text-align: center;
+ }
+
+ /* Range range styling */
+ .range {
+     width: 100%;
+     margin: 0;
+ }
+
+ /* Labels styling container */
+ .range-labels {
+     display: flex;
+     justify-content: space-between;
+     margin-top: 4px;
+     padding: 0 4px;
+     font-size: 12px;
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+ }
+
+ .range-labels span {
+     font-size: 0.85rem;
+     color: #666;
+     text-align: center;
+     flex: 1;
+ }
+
+ .range-labels span:first-child {
+     text-align: left;
+ }
+
+ .range-labels span:last-child {
+     text-align: right;
+ }
+
+ .range-tick-label {
+     font-size: 10px;
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     margin-right: 3px;
+ }
