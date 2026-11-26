@@ -6,7 +6,7 @@ function StringUtils() {
         let keys = Object.keys(values);
 
         for (let key in keys) {
-             html = html.split("${" + keys[key] + "}").join(values[keys[key]]);
+            html = html.split("${" + keys[key] + "}").join(values[keys[key]]);
         }
 
         return document.createRange().createContextualFragment(html);
@@ -19,14 +19,21 @@ function StringUtils() {
         let node = document.getElementById(parent);
 
         for (let key in keys) {
-             html = html.split("${" + keys[key] + "}").join(values[keys[key]]);
+            html = html.split("${" + keys[key] + "}").join(values[keys[key]]);
         }
-        
+
         const range = document.createRange();
 
         range.selectNodeContents(node);
-             
+
         node.appendChild(range.createContextualFragment(html));
+
+    }
+
+    StringUtils.prototype.capitalize = (str) => {
+
+        return (!str) ? '' :
+            str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
     }
 
