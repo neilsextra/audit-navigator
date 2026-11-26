@@ -169,7 +169,6 @@ function update(container, elementId, value) {
             "key": value
         });
 
-        console.log(`update - ${container}`);
         window.localStorage.setItem(`navigator:${container}`, JSON.stringify(keys));
 
         addRow(elementId, value, retrieve);
@@ -231,9 +230,9 @@ function filter(elementId, entries, filter) {
 
 function snapshots(requests, request) {
     var stringUtils = new StringUtils();
-  
+
     document.getElementById('request-timeline').replaceChildren();
-    
+
     var template = document.getElementById("snapshot-version").text;
     for (var request of requests) {
 
@@ -328,7 +327,7 @@ async function search(argument, limit) {
 
         for (var row of response["response"]) {
 
-            if (row['key'] != "$") {
+            if (!(['_', '$', '-'].includes(row['key']))) {
 
                 var cells = {}
 
@@ -400,10 +399,6 @@ function display(request) {
 
     addRow("history-table", request, 'retrieve');
 
-
-
-    console.log(window.rows[request][col]["creationTime"]);
-
     document.getElementById("request-view").style.visibility = "visible";
 
 }
@@ -428,6 +423,7 @@ async function retrieve(request) {
 window.onload = async function () {
 
     document.getElementById("ok-connect-dialog").addEventListener('click', async (e) => {
+        var stringUtils = new StringUtils();
 
         document.getElementById("wait-dialog").showModal();
 
@@ -440,6 +436,23 @@ window.onload = async function () {
                 document.getElementById("datalake-userid").value,
                 document.getElementById("datalake-password").value,
                 document.getElementById("datalake-table").value);
+
+            for (var column of response["response"]) {
+                var searchIndex = document.getElementById("search-index");
+
+                if (column["col"] == "json:indexes") {
+                    var indexes = JSON.parse(column["val"]);
+
+                    for (var index of indexes) {
+                        var option = new Option(stringUtils.capitalize(index["label"]), index["label"]);
+
+                        searchIndex.add(option)
+
+                    }
+
+                }
+
+            }
 
             document.getElementById("connect-dialog").close();
             document.getElementById("wait-dialog").close();
@@ -489,12 +502,19 @@ window.onload = async function () {
                 document.getElementById("datalake-userid").value,
                 document.getElementById("datalake-password").value,
                 document.getElementById("datalake-table").value);
+
             for (var column of response["response"]) {
 
                 if (column["col"] == "json:control") {
                     var tokens = JSON.parse(column["val"]);
                     document.getElementById("token-view").replaceChildren();
                     document.getElementById("token-view").appendChild(renderjson(tokens));
+
+                } else if (column["col"] == "json:indexes") {
+                    var indexes = JSON.parse(column["val"]);
+
+                    document.getElementById("indexes-view").replaceChildren();
+                    document.getElementById("indexes-view").appendChild(renderjson(indexes));
 
                 } else if (column["col"] == "json:checkpoint") {
                     var checkpoint = JSON.parse(column["val"]);
