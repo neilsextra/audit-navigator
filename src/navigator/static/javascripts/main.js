@@ -302,10 +302,11 @@ async function command(action) {
 }
 /**
  * Search for a specific records base on the provided argument
- * @param {string} argument the search arguement
+ * @param {string} argument the search argument
+ * @param {string} index if populated the search otherwise the base table
  * @param {int} limit the number of recrods to return
  */
-async function search(argument, limit) {
+async function search(argument, index, limit) {
     try {
         document.getElementById("wait-dialog").showModal();
 
@@ -316,7 +317,7 @@ async function search(argument, limit) {
             document.getElementById("datalake-userid").value,
             document.getElementById("datalake-password").value,
             document.getElementById("datalake-table").value,
-            argument, limit
+            argument, index, limit
         );
 
         document.getElementById("wait-dialog").close();
@@ -410,7 +411,7 @@ function display(request) {
 async function retrieve(request) {
 
     if (!(request in window.rows)) {
-        await search(request, 1);
+        await search(request, '', 1);
     }
 
     select(request);
@@ -444,7 +445,7 @@ window.onload = async function () {
                     var indexes = JSON.parse(column["val"]);
 
                     for (var index of indexes) {
-                        var option = new Option(stringUtils.capitalize(index["label"]), index["label"]);
+                        var option = new Option(stringUtils.capitalize(index["label"]), index["index"]);
 
                         searchIndex.add(option)
 
@@ -553,6 +554,7 @@ window.onload = async function () {
 
         await search(
             document.getElementById("search-argument").value,
+            document.getElementById("search-index").value,
             document.getElementById("search-limit").value
         );
 
