@@ -68,8 +68,9 @@ function clean(id) {
  * @param {string} elementId the table identifier
  * @param {string} value the value to identifer
  * @param {string} callback the callback function
+ * @param {string[]} args the callback arguments
  */
-function addRow(elementId, value, callback) {
+function addRow(elementId, value, callback, args=[]) {
     var table = document.getElementById(elementId);
     var item = -1;
 
@@ -84,10 +85,17 @@ function addRow(elementId, value, callback) {
         }
     }
 
+    var params = ""
+
+    for (var arg of args) {
+
+        params += params.length == 0 ? `'${arg}'` : `, '${arg}'`
+    }
+
     if (item == -1) {
         var row = table.insertRow();
 
-        row.setAttribute("onclick", `window.${callback}('${value}')`, 0);
+        row.setAttribute("onclick", `window.${callback}(${params})`, 0);
 
         var cell = row.insertCell();
 
@@ -136,7 +144,7 @@ function setup(container, elementId) {
     var tags = tagStorage != null ? JSON.parse(tagStorage) : [];
 
     for (var tag in tags) {
-        addRow(elementId, tags[tag].key, 'retrieve');
+        addRow(elementId, tags[tag].key, 'retrieve', [tags[tag].key]);
     }
 
 }
@@ -171,7 +179,7 @@ function update(container, elementId, value) {
 
         window.localStorage.setItem(`navigator:${container}`, JSON.stringify(keys));
 
-        addRow(elementId, value, retrieve);
+        addRow(elementId, value, retrieve, [value]);
 
     }
 
@@ -398,7 +406,7 @@ function display(request) {
         document.getElementById(col).appendChild(renderjson(window.rows[request][col]));
     }
 
-    addRow("history-table", request, 'retrieve');
+    addRow("history-table", request, 'retrieve', [request]);
 
     document.getElementById("request-view").style.visibility = "visible";
 
@@ -558,14 +566,10 @@ window.onload = async function () {
             document.getElementById("search-limit").value
         );
 
-        var table = document.getElementById("search-table");
-
-        while (table.rows.length > 0) {
-            table.deleteRow(0);
-        }
+        document.getElementById("search-table").replaceChildren();
 
         for (var request of Object.keys(window.rows)) {
-            addRow("search-table", request, 'select');
+            addRow("search-table", request, 'select', [request]);
         }
 
     });
