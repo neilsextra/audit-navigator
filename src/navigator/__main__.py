@@ -63,6 +63,7 @@ def get_search():
         "datalake_password": request.headers.get('datalake-password'),
         "datalake_table": request.headers.get('datalake-table'),
         "row_filter": request.values.get('filter', '*').strip(),
+        "search_index": request.values.get('index', ''),
         "row_limit": request.values.get('limit', '10')
     })
     
