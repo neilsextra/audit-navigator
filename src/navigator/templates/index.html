@@ -122,22 +122,30 @@
         <div>
             <p id="profile-header" style="font-size: 18px; font-weight: bold;">About...</p>
             <div id="info-tabs"
-                style="position:absolute; top:74px; left:10px; right:10px; bottom:40px; overflow:hidden;">
+                style="position:absolute; top:74px; left:10px; right:10px; bottom:40px; overflow:hidden; border-bottom:2px groove rgba(0,0,0, 0.2)">
                 <div class="tab">
                     <button class="tablinks" id="info-tab1"
                         onclick="showTab(event, 'info-tabs', 'summary-panel', 'info-tab1')"
                         value="Token">Summary</button>
                     <button class="tablinks" id="info-tab2"
-                        onclick="showTab(event, 'info-tabs', 'checkpoint-panel', 'info-tab2')"
-                        value="URLs">Checkpoint</button>
+                        onclick="showTab(event, 'info-tabs', 'indexes-panel', 'info-tab2')"
+                        value="URLs">Indexes</button>
+                    <button class="tablinks" id="info-tab3"
+                        onclick="showTab(event, 'info-tabs', 'checkpoint-panel', 'info-tab3')"
+                        value="checkpoint">Checkpoint</button>
                 </div>
 
                 <div id="summary-panel" class="tabcontent"
                     style="position:absolute; top:45px; left:0px; right:0px; bottom:0px;">
                     <div id="token-view"
                         style="position:absolute; left:0px; top:2px; right:0px; bottom:0px; overflow-y: auto;">
+                    </div>
+                </div>
 
-
+                <div id="indexes-panel" class="tabcontent"
+                    style="position:absolute; top:45px; left:0px; right:0px; bottom:0px;">
+                    <div id="indexes-view"
+                        style="position:absolute; left:0px; top:2px; right:0px; bottom:0px; overflow-y: auto;">
                     </div>
                 </div>
 
@@ -188,10 +196,16 @@
         <div id="search-panel" class="tabcontent"
             style="display:inline-block; position: absolute; top: 45px; bottom: 20px; width:350px; left: 0px; overflow:none">
 
+            <select name="search-index" id="search-index"
+                    style="position:absolute; top:6px; left:10px; height:24px; font-size:12px; width:105px;">
+                    <option value=""></option>
+            </select>
+
             <input id="search-argument" class="search"
-                style="position:absolute; top:6px; height:24px; left:10px; right:52px; height:18px;"
+                style="position:absolute; top:6px; height:24px; left:120px; right:52px; height:18px;"
                 name="search-argument">
             </input>
+
             <button id="search-button" class="message-dialog-small-button"
                 style="float: right; height:24px; margin-top:0px; margin-right:0px;">
                 <img src="{{ url_for('static', filename='images/search.svg') }}" width="18" , height="18"></img>
