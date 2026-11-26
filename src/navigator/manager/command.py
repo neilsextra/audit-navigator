@@ -3,6 +3,8 @@ from urllib.parse import urlparse
 class Command:
     
     CONFIGURATION_ROW = "$"
+    HISTORY_ROW = "!"
+    SNAPSHOT_ROW = "#"
 
     def __init__(self, storage) -> None:
 
