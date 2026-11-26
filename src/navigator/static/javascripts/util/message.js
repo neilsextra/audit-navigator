@@ -50,10 +50,13 @@ function Message() {
     }.bind(this);
 
     this._search = function (datalakeUrl, datalakeNamespace, datalakeUserid, datalakePassword,
-        datbaseTable, filter, limit) {
+        datbaseTable, filter, index, limit) {
 
         return new Promise((accept, reject) => {
-            let parmURL = `/search?filter=${filter}&limit=${limit}`
+            let parmURL = `/search` +
+                          `?filter=${encodeURIComponent(filter)}` +
+                          `&index=${encodeURIComponent(index)}` +
+                          `&limit=${limit}`
 
             var xhttp = new XMLHttpRequest();
 
@@ -110,11 +113,11 @@ Message.prototype.status = function (datalakeUrl, datalakeNamespace,
 }
 
 Message.prototype.search = function (datalakeUrl, datalakeNamespace,
-    datalakeUserid, datalakePassword, datalakeTable, filter, limit) {
+    datalakeUserid, datalakePassword, datalakeTable, filter, index, limit) {
  
     return this._search(datalakeUrl, datalakeNamespace,
         datalakeUserid, datalakePassword,
         datalakeTable,
-        filter, limit);
+        filter, index, limit);
 
 }
