@@ -50,14 +50,15 @@ function Message() {
     }.bind(this);
 
     this._search = function (datalakeUrl, datalakeNamespace, datalakeUserid, datalakePassword,
-        datbaseTable, filter, index, limit) {
+        datbaseTable, filter, index, limit, offset = 0, length = 2) {
 
         return new Promise((accept, reject) => {
             let parmURL = `/search` +
                           `?filter=${encodeURIComponent(filter)}` +
-                          `&index=${encodeURIComponent(index)}` +
-                          `&limit=${limit}`
-
+                          `&limit=${limit}` +
+                          `&offset=${offset}` +
+                          `&length=${length}`;
+    
             var xhttp = new XMLHttpRequest();
 
             xhttp.open("GET", parmURL, true);
@@ -113,11 +114,12 @@ Message.prototype.status = function (datalakeUrl, datalakeNamespace,
 }
 
 Message.prototype.search = function (datalakeUrl, datalakeNamespace,
-    datalakeUserid, datalakePassword, datalakeTable, filter, index, limit) {
+    datalakeUserid, datalakePassword, datalakeTable, filter, 
+    limit = 1 , offset = 0, length = 50) {
  
     return this._search(datalakeUrl, datalakeNamespace,
         datalakeUserid, datalakePassword,
         datalakeTable,
-        filter, index, limit);
+        filter, limit, offset, length);
 
 }
