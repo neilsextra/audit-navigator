@@ -64,8 +64,10 @@ def get_search():
         "datalake_table": request.headers.get('datalake-table'),
         "row_filter": request.values.get('filter', '*').strip(),
         "search_index": request.values.get('index', ''),
-        "row_limit": request.values.get('limit', '10')
-    })
+        "row_limit": request.values.get('limit', '10'),
+        "column_offset": request.values.get('offset', '0'),
+        "column_length": request.values.get('length', '0'),
+        })
     
 @app.route("/")
 def start():
