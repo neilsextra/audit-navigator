@@ -77,7 +77,7 @@ class Storage:
         url = f"{base_url}/{name_space}:{table_name}/{filter}?limit={limit}&filter=ColumnPaginationFilter({length},{offset})"
         print(url)
 
-        print(f"(get_clob) {url}")
+        print(f"(search_table) {url}")
         headers = {"Accept": "application/json"}
 
         response = requests.get(url, auth=(userid, password), headers=headers, verify=False)
@@ -104,39 +104,3 @@ class Storage:
             return [], response.status_code
                                 
         return rows, 200
-
-    def search_index(self, base_url:str, userid:str, password:str, name_space:str, index_name:str, 
-                            filter: str ="*", limit: str = "10", offset: str = "0", length: str = "2"):
-            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    
-            rows = []
-    
-            url = f"{base_url}/{name_space}:{index_name}/{filter}?limit={limit}&filter=ColumnPaginationFilter({length},{offset})"
-    
-            print(f"(get_clob) {url}")
-            headers = {"Accept": "application/json"}
-    
-            response = requests.get(url, auth=(userid, password), headers=headers, verify=False)
-    
-            if response.status_code == 200:
-                data = response.json()
-                for row in data.get("Row", []):
-                    key = Storage.b64_decode(row.get("key"))
-                    
-                    cells = []
-                    for cell in row.get("Cell", []):
-         
-                        cells.append(
-                            {"col": Storage.b64_decode(cell.get("column")),
-                             "val": Storage.b64_decode(cell.get("$"))
-                            })
-        
-                    rows.append({
-                        "key": key,
-                        "cells": cells
-                    })
-    
-            else:
-                return [], response.status_code
-                                    
-            return rows, 200
