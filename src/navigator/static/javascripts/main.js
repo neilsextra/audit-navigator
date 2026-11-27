@@ -53,6 +53,9 @@ function showError(message) {
  * @param {string[]} args the callback arguments
  */
 function addRow(elementId, value, callback, args = []) {
+
+    console.log(`[addRow] callback`);
+
     var table = document.getElementById(elementId);
     var item = -1;
 
@@ -71,17 +74,16 @@ function addRow(elementId, value, callback, args = []) {
 
     for (var arg of args) {
 
-        console.log(`Arg: ${args}`)
         params += params.length == 0 ? `'${arg}'` : `, '${arg}'`
 
     }
 
-    console.log(`Params: ${params}`)
-
     if (item == -1) {
         var row = table.insertRow();
 
-        row.setAttribute("onclick", `window.${callback}(${params})`, 0);
+        console.log(`window.${callback}(${params})`)
+
+        row.setAttribute("onclick", `${callback}(${params})`, 0);
 
         var cell = row.insertCell();
 
@@ -130,7 +132,7 @@ function setup(container, elementId) {
     var tags = tagStorage != null ? JSON.parse(tagStorage) : [];
 
     for (var tag in tags) {
-        addRow(elementId, tags[tag].key, 'retrieve', [tags[tag].key]);
+        addRow(elementId, tags[tag].key, 'window.retrieve', [tags[tag].key]);
     }
 
 }
@@ -165,7 +167,7 @@ function update(container, elementId, value) {
 
         window.localStorage.setItem(`navigator:${container}`, JSON.stringify(keys));
 
-        addRow(elementId, value, retrieve, [value]);
+        addRow(elementId, value, 'window.retrieve', [value, document.getElementById("datalake-table").value]);
 
     }
 
@@ -206,7 +208,8 @@ function filter(elementId, entries, filter) {
         if (entry['key'].toLowerCase().indexOf(filter.toLowerCase()) != -1) {
             var row = table.insertRow();
 
-            row.setAttribute("onclick", `window.select('${entry['key']}')`);
+            row.setAttribute("onclick", `window.select('${entry['key']}, ` +
+                `'${document.getElementById("datalake-table").value}'`);
 
             var cell = row.insertCell();
 
@@ -297,12 +300,14 @@ async function command(action) {
 /**
  * Search for a specific records base on the provided argument
  * @param {string} argument the search argument
- * @param {string} index if populated the search otherwise the base table
+ * @param {string} table datalake table name
  * @param {int} limit the number of records to return
  */
-async function search(argument, index, limit) {
+async function search(argument, table, limit, offset, length) {
     try {
         document.getElementById("wait-dialog").showModal();
+       
+        document.getElementById("search-table").replaceChildren();
 
         var message = new Message();
         var response = await message.search(
@@ -310,32 +315,27 @@ async function search(argument, index, limit) {
             document.getElementById("datalake-namespace").value,
             document.getElementById("datalake-userid").value,
             document.getElementById("datalake-password").value,
-            document.getElementById("datalake-table").value,
-            argument, index, limit, 0, 2
+            table,
+            argument, limit, offset, length,
 
         );
 
-        window.response = response["response"];
-
-        var rows = {}
+        document.getElementById("search-table").replaceChildren();
 
         for (var row of response["response"]) {
 
             if (!(['_', '$', '-'].includes(row['key']))) {
 
-                var cells = {}
+                addRow("search-table",
+                    row['key'],
+                    'retrieve',
+                    [row['key'],
+                    document.getElementById("search-index").value]);
 
-                for (var cell of row["cells"]) {
-                    cells[cell["col"]] = cell["val"].trim().length == 0 ? {} : JSON.parse(cell["val"]);
-                }
-
-                rows[row['key']] = cells
 
             }
 
         }
-
-        window.rows = rows;
 
         document.getElementById("wait-dialog").close();
 
@@ -358,27 +358,13 @@ async function search(argument, index, limit) {
  * @param {string} request the request identifier
  * @param {string} index the selected index
  */
-async function select(request, index = "") {
+async function select(request, index) {
 
     console.log(`[Select] ${request} : ${index}`);
 
-    if (index.trim().length == 0) {
+    if (index.trim() == document.getElementById("datalake-table").value) {
 
-        display(request);
-
-        var requests = [];
-
-        console.log(request);
-        console.log(JSON.stringify(window.rows[request]['json:summary']["creationTime"]));
-
-        requests.push(
-            {
-                "key": request,
-                "creationTime": formatTime(JSON.stringify(window.rows[request]['json:summary']["creationTime"]))
-            }
-        );
-
-        history(requests, request);
+        await display(request)
 
     } else {
         document.getElementById("snapshots-offset").value = 0;
@@ -413,8 +399,8 @@ async function snapshots() {
             document.getElementById("datalake-userid").value,
             document.getElementById("datalake-password").value,
             window.index,
-            `${window.request}*`, 
-            1, 
+            `${window.request}*`,
+            1,
             offset, length
         );
 
@@ -459,34 +445,59 @@ async function snapshots() {
  * Display the selected request's summary and history
  * @param {string} request the request identifier
  */
-function display(request) {
+async function display(request) {
 
-    window.request = request;
+    try {
+        document.getElementById("wait-dialog").showModal();
 
-    document.getElementById("json:summary").replaceChildren();
-    document.getElementById("json:history").replaceChildren();
+        window.request = request;
 
-    for (var col of Object.keys(window.rows[request])) {
-        document.getElementById(col).appendChild(renderjson(window.rows[request][col]));
+        var message = new Message();
+        var response = await message.search(
+            document.getElementById("datalake-url").value,
+            document.getElementById("datalake-namespace").value,
+            document.getElementById("datalake-userid").value,
+            document.getElementById("datalake-password").value,
+            document.getElementById("datalake-table").value,
+            request,
+            1, 0, 2
+        );
+
+        document.getElementById("json:summary").replaceChildren();
+        document.getElementById("json:history").replaceChildren();
+
+        for (var cell of response["response"][0]["cells"]) {
+
+            document.getElementById(cell["col"]).appendChild(renderjson(JSON.parse(cell["val"])));
+        }
+
+        addRow("history-table", "request", 'window.retrieve', [request,
+            document.getElementById('datalake-table').value]);
+
+        document.getElementById("request-view").style.visibility = "visible";
+        document.getElementById("wait-dialog").close();
+
+    } catch (exception) {
+
+        if (exception.trace) {
+            console.log(exception.trace);
+        } else {
+            console.log(exception);
+        }
+
+        document.getElementById("wait-dialog").close();
+        showError(exception.message);
     }
-
-    addRow("history-table", request, 'retrieve', [request]);
-
-    document.getElementById("request-view").style.visibility = "visible";
 
 }
 
 /**
- * retrieve the record before selecing the record
+ * retrieve the record before selecting the record
  * @param {string} request the request identifier
  */
 async function retrieve(request) {
 
-    if (!(request in window.rows)) {
-        await search(request, '', 1);
-    }
-
-    select(request);
+    await select(request, document.getElementById("datalake-table").value);
 
 }
 
@@ -497,6 +508,7 @@ window.onload = async function () {
 
     document.getElementById("ok-connect-dialog").addEventListener('click', async (e) => {
         var stringUtils = new StringUtils();
+        var searchIndex = document.getElementById("search-index");
 
         document.getElementById("wait-dialog").showModal();
 
@@ -510,16 +522,17 @@ window.onload = async function () {
                 document.getElementById("datalake-password").value,
                 document.getElementById("datalake-table").value);
 
+            searchIndex.add(new Option("", document.getElementById("datalake-table").value));
+
             for (var column of response["response"]) {
-                var searchIndex = document.getElementById("search-index");
+
 
                 if (column["col"] == "json:indexes") {
                     var indexes = JSON.parse(column["val"]);
 
                     for (var index of indexes) {
-                        var option = new Option(stringUtils.capitalize(index["label"]), index["index"]);
 
-                        searchIndex.add(option)
+                        searchIndex.add(new Option(stringUtils.capitalize(index["label"]), index["index"]))
 
                     }
 
@@ -627,14 +640,10 @@ window.onload = async function () {
         await search(
             document.getElementById("search-argument").value,
             document.getElementById("search-index").value,
-            document.getElementById("search-limit").value
+            document.getElementById("search-limit").value,
+            0,
+            2
         );
-
-        document.getElementById("search-table").replaceChildren();
-
-        for (var request of Object.keys(window.rows)) {
-            addRow("search-table", request, 'select', [request, document.getElementById("search-index").value]);
-        }
 
     });
 
@@ -715,6 +724,7 @@ window.onload = async function () {
     window.requests = [];
 
     window.select = select;
+    window.retrieve = retrieve;
 
     setup('bookmarks', 'bookmarks-table');
 
