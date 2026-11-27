@@ -64,14 +64,13 @@ class Command:
               An array of name/value parameters
         """
 
-        filter = "*" if parameters['row_filter'] == "" else parameters['row_filter']
-        table =  parameters["datalake_table"] if len(parameters['search_index']) == 0 else parameters['search_index']
-
+        filter = parameters['row_filter'] if parameters['row_filter'].endswith("*") else f"{parameters['row_filter']}*" 
+    
         rows, status_code = self.storage.search_table(parameters["datalake_url"],  
                                               parameters["datalake_userid"], 
                                               parameters["datalake_password"], 
                                               parameters["datalake_namespace"], 
-                                              table,
+                                              parameters["datalake_table"],
                                               filter,
                                               parameters["row_limit"],
                                               parameters["column_offset"],
