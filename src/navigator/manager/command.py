@@ -3,8 +3,6 @@ from urllib.parse import urlparse
 class Command:
     
     CONFIGURATION_ROW = "$"
-    HISTORY_ROW = "!"
-    SNAPSHOT_ROW = "#"
 
     def __init__(self, storage) -> None:
         """
@@ -73,8 +71,10 @@ class Command:
                                               parameters["datalake_userid"], 
                                               parameters["datalake_password"], 
                                               parameters["datalake_namespace"], 
-                                              parameters["datalake_table"],
+                                              table,
                                               filter,
-                                              parameters["row_limit"]
+                                              parameters["row_limit"],
+                                              parameters["column_offset"],
+                                              parameters["column_length"]
                                               )   
         return rows, status_code
