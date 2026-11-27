@@ -1,12 +1,11 @@
 'use strict'
 
-function convert(date) {
-    const dateObj = new Date(date);
-
-    return dateObj.getTime();
-
-}
-
+/**
+ * Fomrat the epoch time into a gregorian format
+ * @param {string} epochTime the time in epoch format
+ * @param {int} adjustment an adjustment
+ * @returns the time in gregorian frmat (Australia/Sydney timezone)
+ */
 function formatTime(epochTime, adjustment = 1) {
     const date = new Date(epochTime * adjustment);
 
@@ -22,23 +21,11 @@ function formatTime(epochTime, adjustment = 1) {
 
 }
 
-function find(table, dn) {
-
-    for (var iRow = 0, row; row = table.rows[iRow]; iRow++) {
-
-        for (var iCell = 0, col; col = row.cells[iCell]; iCell++) {
-
-            if (dn.trim() == col.innerText.trim()) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-
-}
-
-
+/**
+ * Enable all the buttons of a particular class
+ * @param {string} className the class name (must be used with buttons)
+ * @param {boolean} enable 'true' enable the buttons of that class
+ */
 function enable(className, enable = true) {
 
     for (var button of document.getElementsByClassName(className)) {
@@ -47,19 +34,14 @@ function enable(className, enable = true) {
 
 }
 
+/**
+ * Display an error message dialog
+ * @param {string} message the message to show in the dialog
+ */
 function showError(message) {
 
     document.getElementById("error-message").innerHTML = message;
     document.getElementById("error-dialog").showModal();
-
-}
-
-function clean(id) {
-    var element = document.getElementById(id);
-
-    while (element.hasChildNodes()) {
-        element.removeChild(element.firstChild);
-    }
 
 }
 
@@ -70,7 +52,7 @@ function clean(id) {
  * @param {string} callback the callback function
  * @param {string[]} args the callback arguments
  */
-function addRow(elementId, value, callback, args=[]) {
+function addRow(elementId, value, callback, args = []) {
     var table = document.getElementById(elementId);
     var item = -1;
 
@@ -89,8 +71,12 @@ function addRow(elementId, value, callback, args=[]) {
 
     for (var arg of args) {
 
+        console.log(`Arg: ${args}`)
         params += params.length == 0 ? `'${arg}'` : `, '${arg}'`
+
     }
+
+    console.log(`Params: ${params}`)
 
     if (item == -1) {
         var row = table.insertRow();
@@ -220,7 +206,7 @@ function filter(elementId, entries, filter) {
         if (entry['key'].toLowerCase().indexOf(filter.toLowerCase()) != -1) {
             var row = table.insertRow();
 
-            row.setAttribute("onclick", `window.select('${entry['key']}')`, 0);
+            row.setAttribute("onclick", `window.select('${entry['key']}')`);
 
             var cell = row.insertCell();
 
@@ -236,7 +222,7 @@ function filter(elementId, entries, filter) {
 
 }
 
-function snapshots(requests, request) {
+function history(requests, request) {
     var stringUtils = new StringUtils();
 
     document.getElementById('request-timeline').replaceChildren();
@@ -312,7 +298,7 @@ async function command(action) {
  * Search for a specific records base on the provided argument
  * @param {string} argument the search argument
  * @param {string} index if populated the search otherwise the base table
- * @param {int} limit the number of recrods to return
+ * @param {int} limit the number of records to return
  */
 async function search(argument, index, limit) {
     try {
@@ -325,10 +311,112 @@ async function search(argument, index, limit) {
             document.getElementById("datalake-userid").value,
             document.getElementById("datalake-password").value,
             document.getElementById("datalake-table").value,
-            argument, index, limit
+            argument, index, limit, 0, 2
+
         );
 
+        window.response = response["response"];
+
+        var rows = {}
+
+        for (var row of response["response"]) {
+
+            if (!(['_', '$', '-'].includes(row['key']))) {
+
+                var cells = {}
+
+                for (var cell of row["cells"]) {
+                    cells[cell["col"]] = cell["val"].trim().length == 0 ? {} : JSON.parse(cell["val"]);
+                }
+
+                rows[row['key']] = cells
+
+            }
+
+        }
+
+        window.rows = rows;
+
         document.getElementById("wait-dialog").close();
+
+    } catch (exception) {
+
+        if (exception.trace) {
+            console.log(exception.trace);
+        } else {
+            console.log(exception);
+        }
+
+        document.getElementById("wait-dialog").close();
+        showError(exception.message);
+    }
+
+}
+
+/**
+ * Select the selected request's summary and history
+ * @param {string} request the request identifier
+ * @param {string} index the selected index
+ */
+async function select(request, index = "") {
+
+    console.log(`[Select] ${request} : ${index}`);
+
+    if (index.trim().length == 0) {
+
+        display(request);
+
+        var requests = [];
+
+        console.log(request);
+        console.log(JSON.stringify(window.rows[request]['json:summary']["creationTime"]));
+
+        requests.push(
+            {
+                "key": request,
+                "creationTime": formatTime(JSON.stringify(window.rows[request]['json:summary']["creationTime"]))
+            }
+        );
+
+        history(requests, request);
+
+    } else {
+        document.getElementById("snapshots-offset").value = 0;
+        document.getElementById("snapshots-length").value = 50;
+
+        window.index = index;
+        window.request = request;
+
+        await snapshots();
+
+    }
+
+}
+
+/**
+ * Select the selected users/date history from an index
+ */
+async function snapshots() {
+
+    var offset = document.getElementById("snapshots-offset").value;
+    var length = document.getElementById("snapshots-length").value;
+
+    console.log(`Snapshot :${window.request} ${window.index} ${offset} ${length}`)
+
+    try {
+        document.getElementById("wait-dialog").showModal();
+
+        var message = new Message();
+        var response = await message.search(
+            document.getElementById("datalake-url").value,
+            document.getElementById("datalake-namespace").value,
+            document.getElementById("datalake-userid").value,
+            document.getElementById("datalake-password").value,
+            window.index,
+            `${window.request}*`, 
+            1, 
+            offset, length
+        );
 
         window.response = response["response"];
 
@@ -364,30 +452,6 @@ async function search(argument, index, limit) {
         document.getElementById("wait-dialog").close();
         showError(exception.message);
     }
-
-}
-
-/**
- * Select the selected request's summary and history
- * @param {string} request the request identifier
- */
-function select(request) {
-
-    display(request);
-
-    var requests = [];
-
-    console.log(request);
-    console.log(JSON.stringify(window.rows[request]['json:summary']["creationTime"]));
-
-    requests.push(
-        {
-            "key": request,
-            "creationTime": formatTime(JSON.stringify(window.rows[request]['json:summary']["creationTime"]))
-        }
-    );
-
-    snapshots(requests, request);
 
 }
 
@@ -569,7 +633,7 @@ window.onload = async function () {
         document.getElementById("search-table").replaceChildren();
 
         for (var request of Object.keys(window.rows)) {
-            addRow("search-table", request, 'select', [request]);
+            addRow("search-table", request, 'select', [request, document.getElementById("search-index").value]);
         }
 
     });
